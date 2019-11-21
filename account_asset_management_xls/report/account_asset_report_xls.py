@@ -566,7 +566,7 @@ class AssetReportXls(report_xls):
             "WHERE date_start <= %s"
             "AND (date_remove IS NULL OR date_remove >= %s) "
             "AND id IN %s AND type = 'normal' "
-	    "AND paused IS NOT TRUE "
+            "AND paused IS NOT TRUE "
             "ORDER BY date_start ASC",
             (fy.date_stop, fy.date_start, tuple(self.asset_ids))
         )
@@ -792,7 +792,7 @@ class AssetReportXls(report_xls):
             "SELECT id FROM account_asset "
             "WHERE date_remove >= %s AND date_remove <= %s"
             "AND id IN %s AND type = 'normal' "
-	    "AND paused IS NOT TRUE "
+            "AND paused IS TRUE "
             "ORDER BY date_remove ASC",
             (fy.date_start, fy.date_stop, tuple(self.asset_ids)))
         dsp_ids = [x[0] for x in cr.fetchall()]
