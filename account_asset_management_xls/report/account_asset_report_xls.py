@@ -766,6 +766,21 @@ class AssetReportXls(report_xls):
         row_pos = self.xls_write_row(
             ws, row_pos, row_data, row_style=self.rt_cell_style_right)
 
+    def render(self, wanted, col_specs, rowtype, render_space='empty'):
+        """
+        When date_remove is empty, default value `None` is assigned:
+        xls_types_default = {..., 'date': None, ...}
+        This causes following error:
+        `argument 2 must be datetime.time, not None`
+        To fix this case, set type to `text` and value to ''
+        """
+        row = super(AssetReportXls, self).render(
+            wanted, col_specs, rowtype, render_space=render_space)
+        if len(row) == 5 and row[3] == 'date' and row[4] == None:
+            row[3] = 'text'
+            row[4] = ''
+        return row
+
     def _removal_report(self, _p, _xs, data, objects, wb):
         cr = self.cr
         uid = self.uid
@@ -789,12 +804,17 @@ class AssetReportXls(report_xls):
         row_pos = self._report_title(ws, _p, row_pos, _xs, title)
 
         cr.execute(
-            "SELECT id FROM account_asset "
-            "WHERE date_remove >= %s AND date_remove <= %s"
-            "AND id IN %s AND type = 'normal' "
-            "AND paused IS TRUE "
-            "ORDER BY date_remove ASC",
-            (fy.date_start, fy.date_stop, tuple(self.asset_ids)))
+            """SELECT id FROM account_asset
+            WHERE (date_remove >= %s AND date_remove <= %s
+            AND id IN %s AND type = 'normal')
+            OR (
+                date_start <= %s
+                AND id IN %s AND type = 'normal'
+                AND paused IS TRUE
+            )
+            ORDER BY date_remove ASC""", (
+                fy.date_start, fy.date_stop, tuple(self.asset_ids),
+                fy.date_stop, tuple(self.asset_ids)))
         dsp_ids = [x[0] for x in cr.fetchall()]
 
         if not dsp_ids:
