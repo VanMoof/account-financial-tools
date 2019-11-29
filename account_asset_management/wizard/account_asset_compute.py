@@ -29,8 +29,7 @@ class AccountAssetCompute(models.TransientModel):
     @api.multi
     def asset_compute(self):
         assets = self.env['account.asset'].search(
-            [('state', '=', 'open'), ('type', '=', 'normal'),
-	     ('paused', '!=', True)])
+            [('state', '=', 'open'), ('type', '=', 'normal')])
         created_move_ids, error_log = assets._compute_entries(
             self.period_id, check_triggers=True)
 
