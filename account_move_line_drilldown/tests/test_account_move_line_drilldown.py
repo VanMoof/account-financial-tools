@@ -12,6 +12,35 @@ class TestAccountMoveLineDrilldown(SavepointCase):
             [("company_id", "=", cls.env.user.company_id.id)], limit=1)
         cls.accounts = cls.env["account.account"].search(
             [("company_id", "=", cls.env.user.company_id.id)], limit=3)
+        cls.group1 = cls.env["account.group"].create({
+            "name": "1",
+            "code_prefix": "1",
+        })
+        cls.group12 = cls.env["account.group"].create({
+            "name": "12",
+            "code_prefix": "12",
+            "parent_id": cls.group1.id,
+        })
+        cls.group123 = cls.env["account.group"].create({
+            "name": "123",
+            "code_prefix": "123",
+            "parent_id": cls.group12.id,
+        })
+        cls.group124 = cls.env["account.group"].create({
+            "name": "124",
+            "code_prefix": "124",
+            "parent_id": cls.group12.id,
+        })
+        cls.group15 = cls.env["account.group"].create({
+            "name": "15",
+            "code_prefix": "15",
+            "parent_id": cls.group1.id,
+        })
+        cls.group156 = cls.env["account.group"].create({
+            "name": "156",
+            "code_prefix": "156",
+            "parent_id": cls.group15.id,
+        })
 
     def test_account_move_line_drilldown(self):
         """Fields from this module are computed as expected"""
@@ -23,10 +52,27 @@ class TestAccountMoveLineDrilldown(SavepointCase):
             ],
         })
         move_line = move.line_ids[0]
-        self.assertEqual(
-            move_line.account_root_code, move_line.account_id.code[0])
-        self.assertEqual(
-            move_line.account_sub_code, move_line.account_id.code[:2])
-        move_line.account_id.code = "89" + move_line.account_id.code
-        self.assertEqual(move_line.account_root_code, "8")
-        self.assertEqual(move_line.account_sub_code, "89")
+        account = move_line.account_id
+        account.group_id = self.group123
+        self.assertEqual(move_line.account_root_group_id, self.group1)
+        self.assertEqual(move_line.account_sub_group_id, self.group12)
+
+        account.group_id = self.group12
+        self.assertEqual(move_line.account_root_group_id, self.group1)
+        self.assertEqual(move_line.account_sub_group_id, self.group12)
+
+        account.group_id = self.group1
+        self.assertEqual(move_line.account_root_group_id, self.group1)
+        self.assertFalse(move_line.account_sub_group_id)
+
+        account.group_id = self.group156
+        self.assertEqual(move_line.account_root_group_id, self.group1)
+        self.assertEqual(move_line.account_sub_group_id, self.group15)
+
+        self.group156.parent_id = self.group123
+        self.assertEqual(move_line.account_root_group_id, self.group1)
+        self.assertEqual(move_line.account_sub_group_id, self.group12)
+
+        self.group156.parent_id = False
+        self.assertEqual(move_line.account_root_group_id, self.group156)
+        self.assertFalse(move_line.account_sub_group_id)

@@ -1,5 +1,6 @@
 Go to Invoicing -> Reporting -> Management -> Journal Item Drilldown to browse
-journal items in the pseudo hierarchy that this module provides.
+journal items across the first two levels of the account group hierarchy plus
+the account level.
 
 By default, you will get a pivot view with the three levels expanded:
 
@@ -7,8 +8,8 @@ By default, you will get a pivot view with the three levels expanded:
      :scale: 80 %
      :alt: journal Item Drilldown pivot view
 
-The three levels are: the account root code (first digit of the account code),
-the account sub code (first two digits of the account code) and the account
+The three levels are: the top level of the account.group hierarchy,
+the top - 1 level of the account.group hierarchy, and the account
 itself. You can easily collapse a level by deselecting them in the `Group By`
 dropdown in the search bar.
 
